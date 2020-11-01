@@ -25,15 +25,20 @@ rocks = load_rocks(garden_plan)
 monk_population = []
 for i in range(random.randint(20, 50)):
     garden = Garden(size_x, size_y, rocks)
-    monk = Monk(garden, i+1)
+    monk = Monk(garden, i)
 
     monk.rake_garden()
-    monk.send_work_report()
+    # monk.send_work_report()
 
     monk_population.append(monk)
 
-best1, best2 = tournament_selection(monk_population, random.randint(5, 10))
-best1.send_work_report()
-best2.send_work_report()
+tournament1, tournament2 = tournament_selection(monk_population, random.randint(5, 10))
+roulette1, roulette2 = roulette_selection(monk_population)
 
-print("git check")
+print("\n---\n ->Tournament_WINNERS:")
+tournament1.send_work_report()
+tournament2.send_work_report()
+
+print("\n---\n ->Roulette-WINNERS:")
+roulette1.send_work_report()
+roulette2.send_work_report()

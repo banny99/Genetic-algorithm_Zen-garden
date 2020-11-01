@@ -8,7 +8,6 @@ class Garden:
         self.rocks = rocks
         self.num_of_sand_places = (size_x-2) * (size_y-2) - len(rocks)
         self.garden_grid = []
-        self.free_start_positions_index = []
         self.free_start_positions = []
 
         self.build_garden()
@@ -33,9 +32,6 @@ class Garden:
 
 
     def set_free_start_positions(self):
-        for i in range(2*self.size_x + 2*self.size_y):
-            self.free_start_positions_index.append(i)
-
         for x in range(1, self.size_x):
             self.free_start_positions.append((x, 0))
             self.free_start_positions.append((x, self.size_y-1))

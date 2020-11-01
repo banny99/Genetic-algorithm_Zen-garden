@@ -34,19 +34,25 @@ class Monk:
             # ak je vobec mozne z danej start. pozicie zacat hrabanie
             if self.is_possible_to_begin_raking():
 
-                still_inside_the_garden = True
+                # number of raked places witihin one SUCCESFUL!!! raking line [norpwol = Number Of Raked Places Within One Line]
+                norpwol = -1
+
                 # posuvanie hrabajuceho mnicha pokym sa mu nepodari dostat na okraj zahrady alebo sa v nej nezasekne
+                still_inside_the_garden = True
                 while still_inside_the_garden and self.move_direction != 'x':
                     still_inside_the_garden = self.move(turn_index)
+                    norpwol += 1
 
-                # ak sa zasekol v zahradke a nevie sa pohnut
+                # ak sa zasekol v zahradke a nevie sa pohnut (=neuspesny tah ->koniec)
                 if self.move_direction == 'x':
                     break
-                # ak sa dostal na okraj
+                # ak sa dostal na okraj (=uspesny tah)
                 else:
                     # odstran vychodnu poz z listu moznych zaciatkov
                     end_poz = (self.myPoz_x, self.myPoz_y)
                     self.myGarden.free_start_positions.remove(end_poz)
+                    # pripocitaj pocet pohrabanych policok v tomto (uspesnom) tahu k celkovemu poctu pohrabanych policok
+                    self.num_of_raked_places += norpwol
                     # navys index tahov
                     turn_index += 1
 
@@ -114,14 +120,14 @@ class Monk:
             return False
 
 
-    def move(self, move_index):
+    def move(self, turn_index):
 
         # right:
         if self.move_direction == 'r':
             garden_poz = self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x + 1]
             # ak sa moze posunut v jeho smere ->pohrabe a posuva sa
             if garden_poz == 0 or garden_poz == -1:
-                self.rake_curr_place(move_index)
+                self.rake_curr_place(turn_index)
                 self.myPoz_x += 1
                 # ak je este vo vnutri zahrady
                 if garden_poz == 0:
@@ -138,7 +144,7 @@ class Monk:
         elif self.move_direction == 'l':
             garden_poz = self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x - 1]
             if garden_poz == 0 or garden_poz == -1:
-                self.rake_curr_place(move_index)
+                self.rake_curr_place(turn_index)
                 self.myPoz_x -= 1
                 if garden_poz == 0:
                     self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = 'M'
@@ -153,7 +159,7 @@ class Monk:
         elif self.move_direction == 'd':
             garden_poz = self.myGarden.garden_grid[self.myPoz_y + 1][self.myPoz_x]
             if garden_poz == 0 or garden_poz == -1:
-                self.rake_curr_place(move_index)
+                self.rake_curr_place(turn_index)
                 self.myPoz_y += 1
                 if garden_poz == 0:
                     self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = 'M'
@@ -168,7 +174,7 @@ class Monk:
         elif self.move_direction == 'u':
             garden_poz = self.myGarden.garden_grid[self.myPoz_y - 1][self.myPoz_x]
             if garden_poz == 0 or garden_poz == -1:
-                self.rake_curr_place(move_index)
+                self.rake_curr_place(turn_index)
                 self.myPoz_y -= 1
                 if garden_poz == 0:
                     self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = 'M'
@@ -180,9 +186,9 @@ class Monk:
                 return True
 
 
-    def rake_curr_place(self, move_index):
+    def rake_curr_place(self, turn_index):
         if self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] != -1:
-            self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = move_index
+            self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = turn_index
             self.num_of_raked_places += 1
 
 
@@ -234,7 +240,7 @@ class Monk:
 
     def send_work_report(self):
         # self.myGarden.print_garden()
-        print("\n-----\nMonk's num.", self.index, "work-report:")
+        print("\n   Monk's num.", self.index, "work-report:")
         print(" -I raked ", self.num_of_raked_places, " places out of ", self.myGarden.num_of_sand_places, "places.")
         print(" -My starting positions: ", self.starting_positions)
         print(" -Decisions I made: ", self.chosen_directions)
