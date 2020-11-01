@@ -35,3 +35,5 @@ for i in range(random.randint(20, 50)):
 best1, best2 = tournament_selection(monk_population, random.randint(5, 10))
 best1.send_work_report()
 best2.send_work_report()
+
+print("git check")
