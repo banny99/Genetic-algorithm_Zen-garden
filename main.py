@@ -29,6 +29,10 @@ for i in range(random.randint(20, 50)):
 
     monk.rake_garden()
     # monk.send_work_report()
+    if monk.num_of_raked_places == garden.num_of_sand_places:
+        print("FINITO - pohrabal som celu zahradu !!!")
+        monk.send_work_report()
+        break
 
     monk_population.append(monk)
 

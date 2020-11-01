@@ -40,8 +40,7 @@ class Monk:
                 # posuvanie hrabajuceho mnicha pokym sa mu nepodari dostat na okraj zahrady alebo sa v nej nezasekne
                 still_inside_the_garden = True
                 while still_inside_the_garden and self.move_direction != 'x':
-                    still_inside_the_garden = self.move(turn_index)
-                    norpwol += 1
+                    still_inside_the_garden, norpwol = self.move(turn_index, norpwol)
 
                 # ak sa zasekol v zahradke a nevie sa pohnut (=neuspesny tah ->koniec)
                 if self.move_direction == 'x':
@@ -55,6 +54,7 @@ class Monk:
                     self.num_of_raked_places += norpwol
                     # navys index tahov
                     turn_index += 1
+
 
 
     def choose_beginning_poz(self):
@@ -120,7 +120,7 @@ class Monk:
             return False
 
 
-    def move(self, turn_index):
+    def move(self, turn_index, norpwol):
 
         # right:
         if self.move_direction == 'r':
@@ -128,68 +128,71 @@ class Monk:
             # ak sa moze posunut v jeho smere ->pohrabe a posuva sa
             if garden_poz == 0 or garden_poz == -1:
                 self.rake_curr_place(turn_index)
+                norpwol += 1
                 self.myPoz_x += 1
                 # ak je este vo vnutri zahrady
                 if garden_poz == 0:
                     self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = 'M'
-                    return True
+                    return True, norpwol
                 # ak sa uz posunul von
                 elif garden_poz == -1:
-                    return False
+                    return False, norpwol
             else:
                 self.choose_new_direction()
-                return True
+                return True, norpwol
 
         # left:
         elif self.move_direction == 'l':
             garden_poz = self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x - 1]
             if garden_poz == 0 or garden_poz == -1:
                 self.rake_curr_place(turn_index)
+                norpwol += 1
                 self.myPoz_x -= 1
                 if garden_poz == 0:
                     self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = 'M'
-                    return True
+                    return True, norpwol
                 elif garden_poz == -1:
-                    return False
+                    return False, norpwol
             else:
                 self.choose_new_direction()
-                return True
+                return True, norpwol
 
         # down:
         elif self.move_direction == 'd':
             garden_poz = self.myGarden.garden_grid[self.myPoz_y + 1][self.myPoz_x]
             if garden_poz == 0 or garden_poz == -1:
                 self.rake_curr_place(turn_index)
+                norpwol +=1
                 self.myPoz_y += 1
                 if garden_poz == 0:
                     self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = 'M'
-                    return True
+                    return True, norpwol
                 elif garden_poz == -1:
-                    return False
+                    return False, norpwol
             else:
                 self.choose_new_direction()
-                return True
+                return True, norpwol
 
         # up:
         elif self.move_direction == 'u':
             garden_poz = self.myGarden.garden_grid[self.myPoz_y - 1][self.myPoz_x]
             if garden_poz == 0 or garden_poz == -1:
                 self.rake_curr_place(turn_index)
+                norpwol +=1
                 self.myPoz_y -= 1
                 if garden_poz == 0:
                     self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = 'M'
-                    return True
+                    return True, norpwol
                 elif garden_poz == -1:
-                    return False
+                    return False, norpwol
             else:
                 self.choose_new_direction()
-                return True
+                return True, norpwol
 
 
     def rake_curr_place(self, turn_index):
         if self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] != -1:
             self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = turn_index
-            self.num_of_raked_places += 1
 
 
     def choose_new_direction(self):
