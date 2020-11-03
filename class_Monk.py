@@ -2,27 +2,29 @@ import random
 
 class Monk:
 
-    def __init__(self, garden, index):
-        self.DNA = []
+    def __init__(self, garden, genes, index):
+        self.myGarden = garden
+        # geny (pri prvej populacii ->genes = []):
+        self.DNA = genes
+        self.index = index
+        # fitness:
         self.num_of_raked_places = 0
+        self.starting_positions = []
         self.myPoz_x = None
         self.myPoz_y = None
         self.move_direction = None
-        self.myGarden = garden
-        self.starting_positions = []
         self.chosen_directions = []
-        self.index = index
 
 
     def rake_garden(self):
 
+        max_num_of_starting_positions = self.myGarden.size_x - 2 + self.myGarden.size_y - 2 + len(self.myGarden.rocks)
         turn_index = 1
+
         while self.num_of_raked_places < self.myGarden.num_of_sand_places:
 
-            # nahodny vyber startovacej pozicie hrabania
-            max_num_of_starting_positions = self.myGarden.size_x-2 + self.myGarden.size_y-2 + len(self.myGarden.rocks)
-            if len(self.starting_positions) <= max_num_of_starting_positions and len(self.myGarden.free_start_positions) > 0:
-                start_poz = self.choose_beginning_poz()
+            if len(self.myGarden.free_start_positions) > 0 and len(self.starting_positions) <= max_num_of_starting_positions:
+                start_poz = self.set_beginning_poz()
             else:
                 break
 
@@ -50,6 +52,9 @@ class Monk:
                     # odstran vychodnu poz z listu moznych zaciatkov
                     end_poz = (self.myPoz_x, self.myPoz_y)
                     self.myGarden.free_start_positions.remove(end_poz)
+                    # ak skoncil na niektorej poz., kt. je v genoch ->aj tu treba vymazat, aby uz nemohla byt vybrana za startovaciu poz.
+                    if end_poz in self.DNA:
+                        self.DNA.remove(end_poz)
                     # pripocitaj pocet pohrabanych policok v tomto (uspesnom) tahu k celkovemu poctu pohrabanych policok
                     self.num_of_raked_places += norpwol
                     # navys index tahov
@@ -57,8 +62,16 @@ class Monk:
 
 
 
-    def choose_beginning_poz(self):
-        start_position = random.choice(self.myGarden.free_start_positions)
+    def set_beginning_poz(self):
+
+        # ak (uz/este) ma zdedene geny=startovacie pozicie:
+        if len(self.DNA) > 0:
+            start_position = self.DNA.pop(0)
+        # nahodny vyber startovacej pozicie hrabania -> ak (uz) nema zdedene geny & este su nejake start. pozicie
+        # elif len(self.myGarden.free_start_positions) > 0:
+        else:
+            start_position = random.choice(self.myGarden.free_start_positions)
+
         self.myGarden.free_start_positions.remove(start_position)
         return start_position
 
@@ -196,6 +209,7 @@ class Monk:
 
 
     def choose_new_direction(self):
+        # ak sa nemoze nikam pohnut:
         if self.is_NOT_possible_to_move() and self.is_NOT_possible_to_get_out():
             self.move_direction = 'x'
 

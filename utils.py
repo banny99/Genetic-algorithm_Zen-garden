@@ -1,4 +1,5 @@
 import random
+from class_Monk import Monk
 
 def load_rocks(garden_plan):
     rocks = []
@@ -66,3 +67,51 @@ def roulette_selection(monk_population):
                 break
 
     return chosen_monks[0], chosen_monks[1]
+
+
+def create_descendant(parent1, parent2, all_start_poz, childs_garden, index):
+    # krizenie:
+    child_genes = crossover(parent1.starting_positions, parent2.starting_positions)
+
+    # mutacia:
+    child_genes = mutation(child_genes, all_start_poz)
+
+    child = Monk(childs_garden, child_genes, index)
+
+    return child
+
+def crossover(genes1, genes2):
+    # 50/50:
+    child_genes = genes1[:len(genes1)//2] + genes2[len(genes2)//2:]
+
+    # removeDuplicate touples (-> tato metode meni poradie-vadi to ?):
+    child_genes = list(set([i for i in child_genes]))
+
+    return child_genes
+
+
+def mutation(child_genes, all_start_poz):
+    mutation_probability = 0.25
+
+    if random.random() < mutation_probability:
+        random_gene = all_start_poz[random.randrange(0, len(all_start_poz))]
+        # nahodny gen zmen za iny nahodny ak sa tam este nenachadza:
+        if random_gene not in child_genes:
+            child_genes[random.randrange(0, len(child_genes))] = random_gene
+
+    return child_genes
+
+
+
+def get_best_try(last_population):
+
+    best_fitness = None
+    best_monk = None
+    for monk in last_population:
+        fitness = monk.num_of_raked_places
+        if best_fitness == None or fitness > best_fitness:
+            best_fitness = fitness
+            best_monk = monk
+
+
+    return best_monk

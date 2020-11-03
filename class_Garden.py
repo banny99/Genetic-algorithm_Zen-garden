@@ -15,7 +15,8 @@ class Garden:
 
     def build_garden(self):
         self.border_garden()
-        self.place_rocks()
+        if len(self.rocks) > 0:
+            self.place_rocks()
 
     def border_garden(self):
         for y in range(self.size_y):
@@ -32,11 +33,11 @@ class Garden:
 
 
     def set_free_start_positions(self):
-        for x in range(1, self.size_x):
+        for x in range(1, self.size_x-1):
             self.free_start_positions.append((x, 0))
             self.free_start_positions.append((x, self.size_y-1))
 
-        for y in range(1, self.size_y):
+        for y in range(1, self.size_y-1):
             self.free_start_positions.append((0, y))
             self.free_start_positions.append((self.size_x-1, y))
 
