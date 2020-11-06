@@ -1,5 +1,7 @@
 import random
 from class_Monk import Monk
+from copy import deepcopy
+
 
 def load_rocks(garden_plan):
     rocks = []
@@ -10,6 +12,49 @@ def load_rocks(garden_plan):
     return rocks
 
 
+# ->Generation raking simulation:
+def simulate_generation(old_monk_population, size_of_population, original_garden, num_of_generation):
+
+    new_monk_population = []
+    whole_garden_raked = False
+    all_start_poz = original_garden.free_start_positions
+
+    for i in range(size_of_population):
+
+        # ak je to prva generacia
+        if num_of_generation == 1:
+            garden_copy = deepcopy(original_garden)
+            monk = Monk(garden_copy, [], i)
+
+        else:
+            # vyber 2 rodicov turnajom:
+            # best1, best2 = tournament_selection(old_monk_population, random.randint(5, 10))
+            # vyber 2 rodicov ruletov:
+            best1, best2 = roulette_selection(old_monk_population)
+
+            # print("\n---\n ->Chosen parents:")
+            # best1.send_work_report()
+            # best2.send_work_report()
+
+            # vytvor potomka a pridaj do listu potomkov = novej generacie:
+            monk = create_descendant(best1, best2, all_start_poz, deepcopy(original_garden), i)
+
+        monk.rake_garden()
+        # monk.send_work_report()
+        new_monk_population.append(monk)
+
+        # ak sa podarilo pohrabat celu zahradu
+        if monk.num_of_raked_places == original_garden.num_of_sand_places:
+            whole_garden_raked = True
+            break
+
+    return new_monk_population, whole_garden_raked
+
+
+
+# --- REPRODUCTION --- #
+
+# ->Selections:
 def tournament_selection(monk_population, n):
 
     tournament_member_indexes = []
@@ -69,6 +114,7 @@ def roulette_selection(monk_population):
     return chosen_monks[0], chosen_monks[1]
 
 
+# ->Child creation:
 def create_descendant(parent1, parent2, all_start_poz, childs_garden, index):
     # krizenie:
     child_genes = crossover(parent1.starting_positions, parent2.starting_positions)
@@ -80,6 +126,7 @@ def create_descendant(parent1, parent2, all_start_poz, childs_garden, index):
 
     return child
 
+# ->Krizenie:
 def crossover(genes1, genes2):
     # 50/50:
     child_genes = genes1[:len(genes1)//2] + genes2[len(genes2)//2:]
@@ -89,7 +136,7 @@ def crossover(genes1, genes2):
 
     return child_genes
 
-
+# ->Mutacia:
 def mutation(child_genes, all_start_poz):
     mutation_probability = 0.25
 
@@ -103,15 +150,35 @@ def mutation(child_genes, all_start_poz):
 
 
 
-def get_best_try(last_population):
+# -Najlepsi pokus- #
+def get_best_try(monk_population, num_of_generation, best_try):
+    curr_best_fitness = None
+    curr_best_monk = None
 
+    # najde nejlepsieho mnicha tejto generacie:
+    for monk in monk_population:
+        fitness = monk.num_of_raked_places
+        if curr_best_fitness == None or fitness > curr_best_fitness:
+            curr_best_fitness = fitness
+            curr_best_monk = monk
+
+    best_monk = best_try[0]
+    # ak je najlepsi z tejto lepsi jak celkovy:
+    if curr_best_fitness >= best_monk.num_of_raked_places:
+        best_try = (curr_best_monk, num_of_generation)
+
+    return best_try
+
+
+def get_best_monk(monk_population):
     best_fitness = None
     best_monk = None
-    for monk in last_population:
+
+    for monk in monk_population:
         fitness = monk.num_of_raked_places
         if best_fitness == None or fitness > best_fitness:
             best_fitness = fitness
             best_monk = monk
 
-
     return best_monk
+
