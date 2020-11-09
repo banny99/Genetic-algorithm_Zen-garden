@@ -36,7 +36,7 @@ class Monk:
             self.set_initial_move_direction()
 
             # ak je vobec mozne z danej start. pozicie zacat hrabanie
-            if self.is_possible_to_begin_raking():
+            if self.is_possible_to_rake():
 
                 # number of raked places witihin one SUCCESFUL!!! raking line [norpwol = Number Of Raked Places Within One Line]
                 norpwol = -1
@@ -55,9 +55,6 @@ class Monk:
                     # odstran vychodnu poz z listu moznych zaciatkov
                     end_poz = (self.myPoz_x, self.myPoz_y)
                     self.myGarden.free_start_positions.remove(end_poz)
-                    # ak skoncil na niektorej poz., kt. je v genoch ->aj tu treba vymazat, aby uz nemohla byt vybrana za startovaciu poz.
-                    if end_poz in self.DNA:
-                        self.DNA.remove(end_poz)
                     # pripocitaj pocet pohrabanych policok v tomto (uspesnom) tahu k celkovemu poctu pohrabanych policok
                     self.num_of_raked_places += norpwol
                     # navys index tahov
@@ -72,6 +69,7 @@ class Monk:
         if start_position not in self.myGarden.free_start_positions:
             start_position = random.choice(self.myGarden.free_start_positions)
 
+        self.starting_positions.append(start_position)
         self.myGarden.free_start_positions.remove(start_position)
         return start_position
 
@@ -88,47 +86,22 @@ class Monk:
             self.move_direction = 'u'
 
 
-    def is_possible_to_begin_raking(self):
+    def is_possible_to_rake(self):
         if self.move_direction == 'u':
-            if self.myGarden.garden_grid[self.myPoz_y-1][self.myPoz_x] == 0:
-                self.starting_positions.append((self.myPoz_x, self.myPoz_y))
-                return True
-            elif self.myGarden.garden_grid[self.myPoz_y-1][self.myPoz_x] == 'K':
-                self.starting_positions.append((self.myPoz_x, self.myPoz_y))
-                return False
-            else:
-                return False
+            poz_to_check = self.myGarden.garden_grid[self.myPoz_y-1][self.myPoz_x]
 
         elif self.move_direction == 'd':
-            if self.myGarden.garden_grid[self.myPoz_y+1][self.myPoz_x] == 0:
-                self.starting_positions.append((self.myPoz_x, self.myPoz_y))
-                return True
-            elif self.myGarden.garden_grid[self.myPoz_y+1][self.myPoz_x] == 'K':
-                self.starting_positions.append((self.myPoz_x, self.myPoz_y))
-                return False
-            else:
-                return False
+            poz_to_check = self.myGarden.garden_grid[self.myPoz_y+1][self.myPoz_x]
 
         elif self.move_direction == 'r':
-            if self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x+1] == 0:
-                self.starting_positions.append((self.myPoz_x, self.myPoz_y))
-                return True
-            elif self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x+1] == 'K':
-                self.starting_positions.append((self.myPoz_x, self.myPoz_y))
-                return False
-            else:
-                return False
+            poz_to_check = self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x+1]
 
         elif self.move_direction == 'l':
-            if self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x-1] == 0:
-                self.starting_positions.append((self.myPoz_x, self.myPoz_y))
-                return True
-            elif self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x-1] == 'K':
-                self.starting_positions.append((self.myPoz_x, self.myPoz_y))
-                return False
-            else:
-                return False
+            poz_to_check = self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x-1]
 
+
+        if poz_to_check == 0 or poz_to_check == -1:
+            return True
         else:
             return False
 
@@ -210,7 +183,7 @@ class Monk:
 
     def choose_new_direction(self):
         # ak sa nemoze nikam pohnut:
-        if self.is_NOT_possible_to_move() and self.is_NOT_possible_to_get_out():
+        if self.is_NOT_possible_to_move():
             self.move_direction = 'x'
 
         else:
@@ -241,7 +214,7 @@ class Monk:
 
     def choose_new_direction2(self):
         # ak sa nemoze nikam pohnut:
-        if self.is_NOT_possible_to_move() and self.is_NOT_possible_to_get_out():
+        if self.is_NOT_possible_to_move():
             self.move_direction = 'x'
 
         else:
@@ -251,6 +224,8 @@ class Monk:
             # ak je uz na konci ->bez od zaciatku
             if self.DNA_index == len(self.DNA):
                 self.DNA_index = 1
+
+            old_direction = self.move_direction
 
             # ak sa otaca do lava:
             if turn_to == 'l':
@@ -274,18 +249,32 @@ class Monk:
                 elif self.move_direction == 'd':
                     self.move_direction = 'l'
 
+            # ak nie je mozne v tomto smere pokracovat v hrabani nezmen:
+            if not self.is_possible_to_rake():
+                self.move_direction = old_direction
+                self.choose_new_direction2()
 
-    def is_NOT_possible_to_get_out(self):
-        # ak je niektory z nich v startovacich poziciach znamena to ze sa tade moze dostat von
-        if (self.myPoz_x + 1, self.myPoz_y) in self.myGarden.free_start_positions or (self.myPoz_x - 1, self.myPoz_y) in self.myGarden.free_start_positions or (self.myPoz_x, self.myPoz_y + 1) in self.myGarden.free_start_positions or (self.myPoz_x, self.myPoz_y - 1) in self.myGarden.free_start_positions:
-            return False
-        else:
-            return True
+
+    # def is_NOT_possible_to_get_out(self):
+    #     # ak je niektory z nich v startovacich poziciach znamena to ze sa tade moze dostat von
+    #     if (self.myPoz_x + 1, self.myPoz_y) in self.myGarden.free_start_positions or (self.myPoz_x - 1, self.myPoz_y) in self.myGarden.free_start_positions or (self.myPoz_x, self.myPoz_y + 1) in self.myGarden.free_start_positions or (self.myPoz_x, self.myPoz_y - 1) in self.myGarden.free_start_positions:
+    #         return False
+    #     else:
+    #         return True
 
 
     def is_NOT_possible_to_move(self):
-        if self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x + 1] == 0 or self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x - 1] == 0 or self.myGarden.garden_grid[self.myPoz_y + 1][self.myPoz_x] == 0 or self.myGarden.garden_grid[self.myPoz_y - 1][self.myPoz_x] == 0:
+        poz_r = self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x + 1]
+        poz_l = self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x - 1]
+        poz_d = self.myGarden.garden_grid[self.myPoz_y + 1][self.myPoz_x]
+        poz_u = self.myGarden.garden_grid[self.myPoz_y - 1][self.myPoz_x]
+
+        if (self.move_direction == 'u' or self.move_direction == 'd') and (poz_r == 0 or poz_r == -1 or poz_l == 0 or poz_l == -1):
             return False
+
+        elif (self.move_direction == 'l' or self.move_direction == 'r') and (poz_u == 0 or poz_u == -1 or poz_d == 0 or poz_d == -1):
+            return False
+
         else:
             return True
 
