@@ -6,6 +6,7 @@ class Monk:
         self.myGarden = garden
         # geny (pri prvej populacii ->genes = []):
         self.DNA = genes
+        self.DNA_index = 1
         self.index = index
         # fitness:
         self.num_of_raked_places = 0
@@ -18,12 +19,13 @@ class Monk:
 
     def rake_garden(self):
 
-        max_num_of_starting_positions = self.myGarden.size_x - 2 + self.myGarden.size_y - 2 + len(self.myGarden.rocks)
+        # max_num_of_starting_positions = self.myGarden.size_x - 2 + self.myGarden.size_y - 2 + len(self.myGarden.rocks)
         turn_index = 1
 
         while self.num_of_raked_places < self.myGarden.num_of_sand_places:
 
-            if len(self.myGarden.free_start_positions) > 0 and len(self.starting_positions) <= max_num_of_starting_positions:
+            # if len(self.myGarden.free_start_positions) > 0 and len(self.starting_positions) <= max_num_of_starting_positions:
+            if len(self.myGarden.free_start_positions) > 0:
                 start_poz = self.set_beginning_poz()
             else:
                 break
@@ -43,6 +45,7 @@ class Monk:
                 still_inside_the_garden = True
                 while still_inside_the_garden and self.move_direction != 'x':
                     still_inside_the_garden, norpwol = self.move(turn_index, norpwol)
+
 
                 # ak sa zasekol v zahradke a nevie sa pohnut (=neuspesny tah ->koniec)
                 if self.move_direction == 'x':
@@ -64,12 +67,9 @@ class Monk:
 
     def set_beginning_poz(self):
 
-        # ak (uz/este) ma zdedene geny=startovacie pozicie:
-        if len(self.DNA) > 0:
-            start_position = self.DNA.pop(0)
-        # nahodny vyber startovacej pozicie hrabania -> ak (uz) nema zdedene geny & este su nejake start. pozicie
-        # elif len(self.myGarden.free_start_positions) > 0:
-        else:
+        start_position = self.DNA[0]
+
+        if start_position not in self.myGarden.free_start_positions:
             start_position = random.choice(self.myGarden.free_start_positions)
 
         self.myGarden.free_start_positions.remove(start_position)
@@ -151,7 +151,7 @@ class Monk:
                 elif garden_poz == -1:
                     return False, norpwol
             else:
-                self.choose_new_direction()
+                self.choose_new_direction2()
                 return True, norpwol
 
         # left:
@@ -167,7 +167,7 @@ class Monk:
                 elif garden_poz == -1:
                     return False, norpwol
             else:
-                self.choose_new_direction()
+                self.choose_new_direction2()
                 return True, norpwol
 
         # down:
@@ -175,7 +175,7 @@ class Monk:
             garden_poz = self.myGarden.garden_grid[self.myPoz_y + 1][self.myPoz_x]
             if garden_poz == 0 or garden_poz == -1:
                 self.rake_curr_place(turn_index)
-                norpwol +=1
+                norpwol += 1
                 self.myPoz_y += 1
                 if garden_poz == 0:
                     self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = 'M'
@@ -183,7 +183,7 @@ class Monk:
                 elif garden_poz == -1:
                     return False, norpwol
             else:
-                self.choose_new_direction()
+                self.choose_new_direction2()
                 return True, norpwol
 
         # up:
@@ -191,7 +191,7 @@ class Monk:
             garden_poz = self.myGarden.garden_grid[self.myPoz_y - 1][self.myPoz_x]
             if garden_poz == 0 or garden_poz == -1:
                 self.rake_curr_place(turn_index)
-                norpwol +=1
+                norpwol += 1
                 self.myPoz_y -= 1
                 if garden_poz == 0:
                     self.myGarden.garden_grid[self.myPoz_y][self.myPoz_x] = 'M'
@@ -199,7 +199,7 @@ class Monk:
                 elif garden_poz == -1:
                     return False, norpwol
             else:
-                self.choose_new_direction()
+                self.choose_new_direction2()
                 return True, norpwol
 
 
@@ -238,6 +238,41 @@ class Monk:
                         self.move_direction = 'l'
 
             self.chosen_directions.append(self.move_direction)
+
+    def choose_new_direction2(self):
+        # ak sa nemoze nikam pohnut:
+        if self.is_NOT_possible_to_move() and self.is_NOT_possible_to_get_out():
+            self.move_direction = 'x'
+
+        else:
+            # vyber rozhodnutie z genomu mnicha
+            turn_to = self.DNA[self.DNA_index]
+            self.DNA_index += 1
+            # ak je uz na konci ->bez od zaciatku
+            if self.DNA_index == len(self.DNA):
+                self.DNA_index = 1
+
+            # ak sa otaca do lava:
+            if turn_to == 'l':
+                if self.move_direction == 'r':
+                    self.move_direction = 'u'
+                elif self.move_direction == 'l':
+                    self.move_direction = 'd'
+                elif self.move_direction == 'u':
+                    self.move_direction = 'l'
+                elif self.move_direction == 'd':
+                    self.move_direction = 'r'
+
+            # ak sa otaca do prava:
+            elif turn_to == 'r':
+                if self.move_direction == 'r':
+                    self.move_direction = 'd'
+                elif self.move_direction == 'l':
+                    self.move_direction = 'u'
+                elif self.move_direction == 'u':
+                    self.move_direction = 'r'
+                elif self.move_direction == 'd':
+                    self.move_direction = 'l'
 
 
     def is_NOT_possible_to_get_out(self):

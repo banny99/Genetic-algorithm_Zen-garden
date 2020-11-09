@@ -12,8 +12,18 @@ def load_rocks(garden_plan):
     return rocks
 
 
+# generate first-random population genomes:
+def create_genome(genome_size, start_positions):
+
+    random_genome = [random.choice(start_positions)]
+    for j in range(genome_size):
+        random_genome.append(random.choice(['l', 'r']))
+
+    return random_genome
+
+
 # ->Generation raking simulation:
-def simulate_generation(old_monk_population, size_of_population, original_garden, num_of_generation):
+def simulate_generation(old_monk_population, size_of_population, genome_size, original_garden, num_of_generation):
 
     new_monk_population = []
     whole_garden_raked = False
@@ -24,7 +34,9 @@ def simulate_generation(old_monk_population, size_of_population, original_garden
         # ak je to prva generacia
         if num_of_generation == 1:
             garden_copy = deepcopy(original_garden)
-            monk = Monk(garden_copy, [], i)
+            # monk = Monk(garden_copy, [], i)
+            random_genome = create_genome(genome_size, garden_copy.free_start_positions)
+            monk = Monk(garden_copy, random_genome, i)
 
         else:
             # vyber 2 rodicov turnajom:
