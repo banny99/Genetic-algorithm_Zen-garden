@@ -23,7 +23,7 @@ def create_genome(genome_size, start_positions):
 
 
 # ->Generation raking simulation:
-def simulate_generation(old_monk_population, size_of_population, genome_size, original_garden, num_of_generation):
+def simulate_generation(old_monk_population, size_of_population, genome_size, mutation_probability, original_garden, num_of_generation):
 
     new_monk_population = []
     whole_garden_raked = False
@@ -34,7 +34,6 @@ def simulate_generation(old_monk_population, size_of_population, genome_size, or
         # ak je to prva generacia
         if num_of_generation == 1:
             garden_copy = deepcopy(original_garden)
-            # monk = Monk(garden_copy, [], i)
             random_genome = create_genome(genome_size, garden_copy.free_start_positions)
             monk = Monk(garden_copy, random_genome, i)
 
@@ -49,7 +48,7 @@ def simulate_generation(old_monk_population, size_of_population, genome_size, or
             # best2.send_work_report()
 
             # vytvor potomka a pridaj do listu potomkov = novej generacie:
-            monk = create_descendant(best1, best2, all_start_poz, deepcopy(original_garden), i)
+            monk = create_descendant(best1, best2, deepcopy(original_garden), i, mutation_probability)
 
         monk.rake_garden()
         # monk.send_work_report()
@@ -102,12 +101,10 @@ def roulette_selection(monk_population):
     for monk in monk_population:
         total_fintess += monk.num_of_raked_places
 
-    monk_probabilities = []
     cummulative_probabilities = []
     # vypocet pravdepodobnosti vyberu jednotlivych mnichov
     for monk in monk_population:
         monk_probability = monk.num_of_raked_places / total_fintess
-        monk_probabilities.append(monk_probability)
 
         if len(cummulative_probabilities) == 0:
             cummulative_probabilities.append(monk_probability)
@@ -127,12 +124,11 @@ def roulette_selection(monk_population):
 
 
 # ->Child creation:
-def create_descendant(parent1, parent2, all_start_poz, childs_garden, index):
+def create_descendant(parent1, parent2, childs_garden, index, mutation_probability):
     # krizenie:
-    child_genes = crossover(parent1.starting_positions, parent2.starting_positions)
-
+    child_genes = crossover(parent1.DNA, parent2.DNA)
     # mutacia:
-    child_genes = mutation(child_genes, all_start_poz)
+    child_genes = mutation(child_genes, mutation_probability)
 
     child = Monk(childs_garden, child_genes, index)
 
@@ -140,23 +136,32 @@ def create_descendant(parent1, parent2, all_start_poz, childs_garden, index):
 
 # ->Krizenie:
 def crossover(genes1, genes2):
-    # 50/50:
-    child_genes = genes1[:len(genes1)//2] + genes2[len(genes2)//2:]
+    # # cia polovica bude prva:
+    # whose = random.choice([1, 2])
 
-    # removeDuplicate touples (-> tato metode meni poradie-vadi to ?):
-    child_genes = list(set([i for i in child_genes]))
+    # # 50/50:
+    # cut_point = len(genes1)//2
+    # child_genes = genes1[:cut_point] + genes2[cut_point:]
+
+    # random cut-point:
+    cut_point = random.randrange(1, len(genes1))
+    child_genes = genes1[:cut_point] + genes2[cut_point:]
 
     return child_genes
 
 # ->Mutacia:
-def mutation(child_genes, all_start_poz):
-    mutation_probability = 0.25
+def mutation(child_genes, mutation_probability):
 
-    if random.random() < mutation_probability:
-        random_gene = all_start_poz[random.randrange(0, len(all_start_poz))]
-        # nahodny gen zmen za iny nahodny ak sa tam este nenachadza:
-        if random_gene not in child_genes:
-            child_genes[random.randrange(0, len(child_genes))] = random_gene
+    # mutation_probability = 0.25
+    if random.random() <= mutation_probability:
+        random_gene_to_change = random.randrange(1, len(child_genes))
+
+        # child_genes[random_gene_to_change] = random.choice(['l', 'r'])
+
+        if child_genes[random_gene_to_change] == 'l':
+            child_genes[random_gene_to_change] = 'r'
+        elif child_genes[random_gene_to_change] == 'r':
+            child_genes[random_gene_to_change] = 'l'
 
     return child_genes
 

@@ -2,12 +2,12 @@ from utils import *
 from class_Garden import Garden
 
 ''' 
--zmenit genom [x,y,l,p,p,l,p,p,l,...]
+-zmenit genom [x,y,l,p,p,l,p,p,l,...] -done
 -strhavat fitness(ked skonci uprostred)
 -"nova krv" (ak sa stuck-nu) 
 -upravit:
-    krizenie [-nahodne cislo randrange(1, len(genom))->podla toho cast z 1. a 2. rodica ]
-    mutaciu [-nahodne cislo randrange(1, len(genom))->ten gen zmen na iny ]
+    krizenie [-nahodne cislo randrange(1, len(genom))->podla toho cast z 1. a 2. rodica ] -done
+    mutaciu [-nahodne cislo randrange(1, len(genom))->ten gen zmen na iny ] -done
 '''
 
 # --- * MAIN * --- #
@@ -29,30 +29,22 @@ rocks = []
 if rock_num > 0:
     rocks = load_rocks(garden_plan)
 
+
 # initialization #
 original_garden = Garden(size_x, size_y, rocks)
 size_of_population = random.randint(20, 50)
 genome_size = size_x-2 + size_y-2 + rock_num
+mutation_probability = 1
+
 monk_population = []
 whole_garden_raked = False
 impossible_to_rake_garden = False
 
 
-# 1st(-random) generation - garden raking:
 num_of_generation = 0
-
-# monk_population, whole_garden_raked = simulate_generation(monk_population, size_of_population, original_garden, num_of_generation)
-
-# best_try = get_best_try(monk_population, num_of_generation, (monk_population[0], num_of_generation))
-
-# # ak sa neda pohrabat ani jedno miesto:
-# if best_try[0].num_of_raked_places == 0:
-#     impossible_to_rake_garden = True
-
-# Other generations - garden raking (till garden raked or 100th.gen):
 while not whole_garden_raked and not impossible_to_rake_garden and num_of_generation < 100:
     num_of_generation += 1
-    monk_population, whole_garden_raked = simulate_generation(monk_population, size_of_population, genome_size, original_garden, num_of_generation)
+    monk_population, whole_garden_raked = simulate_generation(monk_population, size_of_population, genome_size, mutation_probability, original_garden, num_of_generation)
 
     # best_try = get_best_try(monk_population, num_of_generation, best_try)
 
