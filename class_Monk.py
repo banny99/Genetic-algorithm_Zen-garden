@@ -281,7 +281,7 @@ class Monk:
 
     def send_work_report(self):
         # self.myGarden.print_garden()
-        print("\n   Monk's num.", self.index, "work-report:")
+        print("   Monk's num.", self.index, "work-report:")
         print(" -I raked ", self.num_of_raked_places, " places out of ", self.myGarden.num_of_sand_places, "places.")
         print(" -My starting positions: ", self.starting_positions)
-        print(" -Decisions I made: ", self.chosen_directions)
+        print(" -Decisions I made: ", self.chosen_directions, '\n')

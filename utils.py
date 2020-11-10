@@ -27,7 +27,7 @@ def simulate_generation(old_monk_population, size_of_population, genome_size, mu
 
     new_monk_population = []
     whole_garden_raked = False
-    all_start_poz = original_garden.free_start_positions
+    # all_start_poz = original_garden.free_start_positions
 
     for i in range(size_of_population):
 
@@ -39,19 +39,17 @@ def simulate_generation(old_monk_population, size_of_population, genome_size, mu
 
         else:
             # vyber 2 rodicov turnajom:
-            # best1, best2 = tournament_selection(old_monk_population, random.randint(5, 10))
+            # parent1, parent2 = tournament_selection(old_monk_population, random.randint(5, 10))
             # vyber 2 rodicov ruletov:
-            best1, best2 = roulette_selection(old_monk_population)
-
-            # print("\n---\n ->Chosen parents:")
-            # best1.send_work_report()
-            # best2.send_work_report()
+            parent1, parent2 = roulette_selection(old_monk_population)
 
             # vytvor potomka a pridaj do listu potomkov = novej generacie:
-            monk = create_descendant(best1, best2, deepcopy(original_garden), i, mutation_probability)
+            monk = create_descendant(parent1, parent2, deepcopy(original_garden), i, mutation_probability)
 
         monk.rake_garden()
-        # monk.send_work_report()
+        # ak skoncil v strede zahrady:
+        # if monk.myGarden.garden_grid[monk.myPoz_y][monk.myPoz_x] != -1:
+        #     monk.num_of_raked_places = monk.num_of_raked_places//2
         new_monk_population.append(monk)
 
         # ak sa podarilo pohrabat celu zahradu
@@ -111,7 +109,7 @@ def roulette_selection(monk_population):
         else:
             cummulative_probabilities.append(cummulative_probabilities[-1] + monk_probability)
 
-    # vyber n(2?)-mnichov ruletov
+    # vyber n(2?) mnichov ruletov
     chosen_monks = []
     for n in range(2):
         r = random.uniform(0, 1)
@@ -166,6 +164,21 @@ def mutation(child_genes, mutation_probability):
     return child_genes
 
 
+def new_blood(monk_population, original_garden, genome_size):
+    pop_size = len(monk_population)
+
+    for i in range(pop_size//2):
+        random_index = random.randrange(1, len(monk_population))
+        del(monk_population[random_index])
+
+        garden_copy = deepcopy(original_garden)
+        random_genome = create_genome(genome_size, garden_copy.free_start_positions)
+        monk = Monk(garden_copy, random_genome, i)
+        monk.rake_garden()
+        monk_population.append(monk)
+
+    return monk_population
+
 
 # -Najlepsi pokus- #
 def get_best_try(monk_population, num_of_generation, best_try):
@@ -179,10 +192,10 @@ def get_best_try(monk_population, num_of_generation, best_try):
             curr_best_fitness = fitness
             curr_best_monk = monk
 
-    best_monk = best_try[0]
     # ak je najlepsi z tejto lepsi jak celkovy:
-    if curr_best_fitness >= best_monk.num_of_raked_places:
+    if best_try[0] == None or curr_best_fitness >= best_try[0].num_of_raked_places:
         best_try = (curr_best_monk, num_of_generation)
+        print("gen. num: " + str(best_try[1]) + "; fitness-" + str(best_try[0].num_of_raked_places))
 
     return best_try
 
