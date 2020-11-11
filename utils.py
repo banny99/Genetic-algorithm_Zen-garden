@@ -39,7 +39,8 @@ def simulate_generation(old_monk_population, size_of_population, genome_size, mu
 
         else:
             # vyber 2 rodicov turnajom:
-            # parent1, parent2 = tournament_selection(old_monk_population, random.randint(5, 10))
+            # parent1 = tournament_selection(old_monk_population, random.randint(5, random.randint(2, 5)))
+            # parent2 = tournament_selection(old_monk_population, random.randint(5, random.randint(2, 5)))
             # vyber 2 rodicov ruletov:
             parent1, parent2 = roulette_selection(old_monk_population)
 
@@ -66,30 +67,18 @@ def simulate_generation(old_monk_population, size_of_population, genome_size, mu
 # ->Selections:
 def tournament_selection(monk_population, n):
 
-    tournament_member_indexes = []
-    # vyber nahodnych mnichov do turnaja (bez opakovani?)
+    tournament_members = []
+    # vyber nahodnych mnichov do turnaja
     for i in range(n):
         # vyber nahodneho mnicha
-        random_monk_poz_index = random.randrange(len(monk_population))
-        # ak uz mnich already je v turnaji ->vyberaj dalsieho, pokym nevyberies takeho aky tam este nie je (-aby sa neopakovali mnisi v turnaji)
-        while random_monk_poz_index in tournament_member_indexes:
-            random_monk_poz_index = random.randrange(len(monk_population))
+        tournament_members.append(random.choice(monk_population))
 
-        tournament_member_indexes.append(random_monk_poz_index)
+    best_monk = None
+    for monk_competitor in tournament_members:
+        if (best_monk == None) or (monk_competitor.num_of_raked_places > best_monk.num_of_raked_places):
+            best_monk = monk_competitor
 
-
-    best_monk1 = None
-    best_monk2 = None
-    # vyber najlepsich 2 mnichov z turnaja
-    for monk_index in tournament_member_indexes:
-        monk_competitor = monk_population[monk_index]
-        if (best_monk1 == None) or (monk_competitor.num_of_raked_places > best_monk1.num_of_raked_places):
-            best_monk2 = best_monk1
-            best_monk1 = monk_competitor
-        elif (best_monk2 == None) or (monk_competitor.num_of_raked_places > best_monk2.num_of_raked_places):
-            best_monk2 = monk_competitor
-
-    return best_monk1, best_monk2
+    return best_monk
 
 
 def roulette_selection(monk_population):
@@ -150,7 +139,6 @@ def crossover(genes1, genes2):
 # ->Mutacia:
 def mutation(child_genes, mutation_probability):
 
-    # mutation_probability = 0.25
     if random.random() <= mutation_probability:
         random_gene_to_change = random.randrange(1, len(child_genes))
 
@@ -165,9 +153,10 @@ def mutation(child_genes, mutation_probability):
 
 
 def new_blood(monk_population, original_garden, genome_size):
-    pop_size = len(monk_population)
+    kill_num = int(input("what percentage of the population should be killed ?\n "))
+    kill_num = int((kill_num * len(monk_population)) / 100.0)
 
-    for i in range(pop_size//2):
+    for i in range(kill_num):
         random_index = random.randrange(1, len(monk_population))
         del(monk_population[random_index])
 
@@ -212,3 +201,11 @@ def get_best_monk(monk_population):
 
     return best_monk
 
+
+def get_average_fitness(monk_population):
+
+    fitness_sum = 0
+    for monk in monk_population:
+        fitness_sum += monk.num_of_raked_places
+
+    return fitness_sum//len(monk_population)

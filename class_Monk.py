@@ -4,11 +4,9 @@ class Monk:
 
     def __init__(self, garden, genes, index):
         self.myGarden = garden
-        # geny (pri prvej populacii ->genes = []):
         self.DNA = genes
         self.DNA_index = 1
         self.index = index
-        # fitness:
         self.num_of_raked_places = 0
         self.starting_positions = []
         self.myPoz_x = None
@@ -115,7 +113,6 @@ class Monk:
             next_poz = self.myGarden.garden_grid[self.myPoz_y - 1][self.myPoz_x]
 
 
-        # return self.rake_curr_place(next_poz, turn_index, norpwol)
         still_inside_the_garden, norpwol = self.rake_curr_place(next_poz, turn_index, norpwol)
         return still_inside_the_garden, norpwol
 
@@ -146,7 +143,8 @@ class Monk:
 
         # ak sa neda v mojom smere pokracovat (-prekazka):
         else:
-            self.choose_new_direction2()
+            recursion_check = 1
+            self.choose_new_direction2(recursion_check)
             return True, norpwol
 
 
@@ -197,9 +195,10 @@ class Monk:
     #
     #         self.chosen_directions.append(self.move_direction)
 
-    def choose_new_direction2(self):
+
+    def choose_new_direction2(self, recursion_check):
         # ak sa nemoze nikam pohnut:
-        if self.is_NOT_possible_to_move():
+        if self.is_NOT_possible_to_move() or recursion_check >= len(self.DNA):
             self.move_direction = 'x'
 
         else:
@@ -237,7 +236,10 @@ class Monk:
             # ak nie je mozne v tomto smere pokracovat v hrabani nezmen:
             if not self.is_possible_to_rake():
                 self.move_direction = old_direction
-                self.choose_new_direction2()
+                recursion_check += 1
+                self.choose_new_direction2(recursion_check)
+
+            return recursion_check
 
 
     def is_NOT_possible_to_move(self):
