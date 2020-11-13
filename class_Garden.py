@@ -1,5 +1,4 @@
 
-
 class Garden:
 
     def __init__(self, size_x, size_y, rocks):
@@ -44,4 +43,7 @@ class Garden:
 
     def print_garden(self):
         for line in self.garden_grid:
-            print(line)
+            str_line = ''
+            for place in line:
+                str_line = str_line + str(place) + '\t'
+            print(str_line)

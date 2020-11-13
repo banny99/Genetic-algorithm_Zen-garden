@@ -13,12 +13,20 @@ def load_rocks(garden_plan):
 
 
 # generate first-random population genomes:
-def create_genome(genome_size, start_positions):
+def create_genome(genome_size, all_start_positions):
+    random_genome = []
+    starting_poz = [1]
+    turn_choices = [1]
 
-    random_genome = [random.choice(start_positions)]
-    for j in range(genome_size):
-        random_genome.append(random.choice(['l', 'r']))
+    for j in range(genome_size//2):
+        turn_choices.append(random.choice(['l', 'r']))
+        random_start_poz = random.choice(all_start_positions)
+        while random_start_poz in starting_poz:
+            random_start_poz = random.choice(all_start_positions)
+        starting_poz.append(random_start_poz)
 
+    random_genome.append(starting_poz)
+    random_genome.append(turn_choices)
     return random_genome
 
 
@@ -27,7 +35,6 @@ def simulate_generation(old_monk_population, size_of_population, genome_size, mu
 
     new_monk_population = []
     whole_garden_raked = False
-    # all_start_poz = original_garden.free_start_positions
 
     for i in range(size_of_population):
 
@@ -113,43 +120,47 @@ def roulette_selection(monk_population):
 # ->Child creation:
 def create_descendant(parent1, parent2, childs_garden, index, mutation_probability):
     # krizenie:
-    child_genes = crossover(parent1.DNA, parent2.DNA)
+    child_genome = crossover(parent1.DNA, parent2.DNA)
     # mutacia:
-    child_genes = mutation(child_genes, mutation_probability)
+    child_genome = mutation(child_genome, mutation_probability, childs_garden)
 
-    child = Monk(childs_garden, child_genes, index)
-
+    child = Monk(childs_garden, child_genome, index)
     return child
 
 # ->Krizenie:
 def crossover(genes1, genes2):
-    # # cia polovica bude prva:
-    # whose = random.choice([1, 2])
-
-    # # 50/50:
-    # cut_point = len(genes1)//2
-    # child_genes = genes1[:cut_point] + genes2[cut_point:]
+    child_random_genome = []
 
     # random cut-point:
-    cut_point = random.randrange(1, len(genes1))
-    child_genes = genes1[:cut_point] + genes2[cut_point:]
+    cut_point = random.randrange(1, len(genes1[0])-1)
+    child_starting_poz = ([1] + genes1[0][1:cut_point] + genes2[0][cut_point:])
 
-    return child_genes
+    cut_point = random.randrange(1, len(genes1[1]) - 1)
+    child_turn_choices = ([1] + genes1[1][1:cut_point] + genes2[1][cut_point:])
+
+    child_random_genome.append(child_starting_poz)
+    child_random_genome.append(child_turn_choices)
+
+    return child_random_genome
 
 # ->Mutacia:
-def mutation(child_genes, mutation_probability):
+def mutation(child_genome, mutation_probability, childs_garden):
 
     if random.random() <= mutation_probability:
-        random_gene_to_change = random.randrange(1, len(child_genes))
 
-        # child_genes[random_gene_to_change] = random.choice(['l', 'r'])
+        random_gene_to_change = random.randrange(1, len(child_genome[0]))
+        random_start_poz = random.choice(childs_garden.free_start_positions)
+        while random_start_poz in child_genome[0]:
+            random_start_poz = random.choice(childs_garden.free_start_positions)
+        child_genome[0][random_gene_to_change] = random_start_poz
 
-        if child_genes[random_gene_to_change] == 'l':
-            child_genes[random_gene_to_change] = 'r'
-        elif child_genes[random_gene_to_change] == 'r':
-            child_genes[random_gene_to_change] = 'l'
+        random_gene_to_change = random.randrange(1, len(child_genome[1]))
+        if child_genome[1][random_gene_to_change] == 'l':
+            child_genome[1][random_gene_to_change] = 'r'
+        elif child_genome[1][random_gene_to_change] == 'r':
+            child_genome[1][random_gene_to_change] = 'l'
 
-    return child_genes
+    return child_genome
 
 
 def new_blood(monk_population, original_garden, genome_size):
