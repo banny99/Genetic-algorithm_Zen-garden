@@ -2,9 +2,9 @@ import random
 
 class Monk:
 
-    def __init__(self, garden, genes, index):
+    def __init__(self, garden, DNA, index):
         self.myGarden = garden
-        self.DNA = genes
+        self.DNA = DNA
         self.index = index
         self.num_of_raked_places = 0
         self.starting_positions = []
@@ -181,7 +181,7 @@ class Monk:
             self.move_direction = 'x'
 
         else:
-            # vyber rozhodnutie z genomu mnicha
+            # vyber rozhodnutie z DNA mnicha
             turn_index = self.DNA[1][0]
             turn_to = self.DNA[1][turn_index]
             self.DNA[1][0] += 1

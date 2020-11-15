@@ -12,26 +12,26 @@ def load_rocks(garden_plan):
     return rocks
 
 
-# generate first-random population genomes:
-def create_genome(genome_size, all_start_positions):
-    random_genome = []
+# generate first-random population DNAs:
+def create_DNA(DNA_size, all_start_positions):
+    random_DNA = []
     starting_poz = [1]
     turn_choices = [1]
 
-    for j in range(genome_size//2):
+    for j in range(DNA_size//2):
         turn_choices.append(random.choice(['l', 'r']))
         random_start_poz = random.choice(all_start_positions)
         while random_start_poz in starting_poz:
             random_start_poz = random.choice(all_start_positions)
         starting_poz.append(random_start_poz)
 
-    random_genome.append(starting_poz)
-    random_genome.append(turn_choices)
-    return random_genome
+    random_DNA.append(starting_poz)
+    random_DNA.append(turn_choices)
+    return random_DNA
 
 
 # ->Generation raking simulation:
-def simulate_generation(old_monk_population, size_of_population, genome_size, mutation_probability, original_garden, num_of_generation):
+def simulate_generation(old_monk_population, size_of_population, DNA_size, mutation_probability, original_garden, num_of_generation, parent_selection):
 
     new_monk_population = []
     whole_garden_raked = False
@@ -41,15 +41,17 @@ def simulate_generation(old_monk_population, size_of_population, genome_size, mu
         # ak je to prva generacia
         if num_of_generation == 1:
             garden_copy = deepcopy(original_garden)
-            random_genome = create_genome(genome_size, garden_copy.free_start_positions)
-            monk = Monk(garden_copy, random_genome, i)
+            random_DNA = create_DNA(DNA_size, garden_copy.free_start_positions)
+            monk = Monk(garden_copy, random_DNA, i)
 
         else:
-            # vyber 2 rodicov turnajom:
-            # parent1 = tournament_selection(old_monk_population, random.randint(5, random.randint(2, 5)))
-            # parent2 = tournament_selection(old_monk_population, random.randint(5, random.randint(2, 5)))
-            # vyber 2 rodicov ruletov:
-            parent1, parent2 = roulette_selection(old_monk_population)
+            if parent_selection == 't':
+                # vyber 2 rodicov turnajom:
+                parent1 = tournament_selection(old_monk_population, random.randint(2, 5))
+                parent2 = tournament_selection(old_monk_population, random.randint(2, 5))
+            else:
+                # vyber 2 rodicov ruletov:
+                parent1, parent2 = roulette_selection(old_monk_population)
 
             # vytvor potomka a pridaj do listu potomkov = novej generacie:
             monk = create_descendant(parent1, parent2, deepcopy(original_garden), i, mutation_probability)
@@ -120,50 +122,51 @@ def roulette_selection(monk_population):
 # ->Child creation:
 def create_descendant(parent1, parent2, childs_garden, index, mutation_probability):
     # krizenie:
-    child_genome = crossover(parent1.DNA, parent2.DNA)
+    child_DNA = crossover(parent1.DNA, parent2.DNA)
     # mutacia:
-    child_genome = mutation(child_genome, mutation_probability, childs_garden)
+    child_DNA = mutation(child_DNA, mutation_probability, childs_garden)
 
-    child = Monk(childs_garden, child_genome, index)
+    child = Monk(childs_garden, child_DNA, index)
     return child
 
 # ->Krizenie:
-def crossover(genes1, genes2):
-    child_random_genome = []
+def crossover(DNA1, DNA2):
+    child_DNA = []
 
     # random cut-point:
-    cut_point = random.randrange(1, len(genes1[0])-1)
-    child_starting_poz = ([1] + genes1[0][1:cut_point] + genes2[0][cut_point:])
+    cut_point = random.randrange(1, len(DNA1[0])-1)
+    child_starting_poz = ([1] + DNA1[0][1:cut_point] + DNA2[0][cut_point:])
 
-    cut_point = random.randrange(1, len(genes1[1]) - 1)
-    child_turn_choices = ([1] + genes1[1][1:cut_point] + genes2[1][cut_point:])
+    cut_point = random.randrange(1, len(DNA2[1]) - 1)
+    child_turn_choices = ([1] + DNA1[1][1:cut_point] + DNA2[1][cut_point:])
 
-    child_random_genome.append(child_starting_poz)
-    child_random_genome.append(child_turn_choices)
+    child_DNA.append(child_starting_poz)
+    child_DNA.append(child_turn_choices)
 
-    return child_random_genome
+    return child_DNA
 
 # ->Mutacia:
-def mutation(child_genome, mutation_probability, childs_garden):
+def mutation(childs_DNA, mutation_probability, childs_garden):
 
     if random.random() <= mutation_probability:
 
-        random_gene_to_change = random.randrange(1, len(child_genome[0]))
+        random_gene_to_change = random.randrange(1, len(childs_DNA[0]))
         random_start_poz = random.choice(childs_garden.free_start_positions)
-        while random_start_poz in child_genome[0]:
+        while random_start_poz in childs_DNA[0]:
             random_start_poz = random.choice(childs_garden.free_start_positions)
-        child_genome[0][random_gene_to_change] = random_start_poz
+        childs_DNA[0][random_gene_to_change] = random_start_poz
 
-        random_gene_to_change = random.randrange(1, len(child_genome[1]))
-        if child_genome[1][random_gene_to_change] == 'l':
-            child_genome[1][random_gene_to_change] = 'r'
-        elif child_genome[1][random_gene_to_change] == 'r':
-            child_genome[1][random_gene_to_change] = 'l'
+        random_gene_to_change = random.randrange(1, len(childs_DNA[1]))
+        if childs_DNA[1][random_gene_to_change] == 'l':
+            childs_DNA[1][random_gene_to_change] = 'r'
+        elif childs_DNA[1][random_gene_to_change] == 'r':
+            childs_DNA[1][random_gene_to_change] = 'l'
 
-    return child_genome
+    return childs_DNA
 
 
-def new_blood(monk_population, original_garden, genome_size):
+# New blood:
+def new_blood(monk_population, original_garden, DNA_size):
     kill_num = int(input("what percentage of the population should be killed ?\n "))
     kill_num = int((kill_num * len(monk_population)) / 100.0)
 
@@ -172,8 +175,8 @@ def new_blood(monk_population, original_garden, genome_size):
         del(monk_population[random_index])
 
         garden_copy = deepcopy(original_garden)
-        random_genome = create_genome(genome_size, garden_copy.free_start_positions)
-        monk = Monk(garden_copy, random_genome, i)
+        random_DNA = create_DNA(DNA_size, garden_copy.free_start_positions)
+        monk = Monk(garden_copy, random_DNA, i)
         monk.rake_garden()
         monk_population.append(monk)
 
@@ -220,3 +223,10 @@ def get_average_fitness(monk_population):
         fitness_sum += monk.num_of_raked_places
 
     return fitness_sum//len(monk_population)
+
+
+def append_fitnesses(all_fitnesses_arr, monk_population):
+    for monk in monk_population:
+        all_fitnesses_arr.append(monk.num_of_raked_places)
+
+    return all_fitnesses_arr
