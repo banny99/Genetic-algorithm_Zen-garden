@@ -57,9 +57,6 @@ def simulate_generation(old_monk_population, size_of_population, DNA_size, mutat
             monk = create_descendant(parent1, parent2, deepcopy(original_garden), i, mutation_probability)
 
         monk.rake_garden()
-        # ak skoncil v strede zahrady:
-        # if monk.myGarden.garden_grid[monk.myPoz_y][monk.myPoz_x] != -1:
-        #     monk.num_of_raked_places = monk.num_of_raked_places//2
         new_monk_population.append(monk)
 
         # ak sa podarilo pohrabat celu zahradu

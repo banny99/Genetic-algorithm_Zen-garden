@@ -2,14 +2,6 @@ from utils import *
 from class_Garden import Garden
 import matplotlib.pyplot as plt
 
-''' 
--zmenit genom [x,y,l,p,p,l,p,p,l,...] -done
--strhavat fitness(ked skonci uprostred) -???
--"nova krv" (ak sa stuck-nu) -> do 50. gen ak nenajdu =>nova krv -done
--upravit:
-    krizenie [-nahodne cislo randrange(1, len(genom))->podla toho cast z 1. a 2. rodica ] -done
-    mutaciu [-nahodne cislo randrange(1, len(genom))->ten gen zmen na iny ] -done
-'''
 
 # --- * MAIN * --- #
 
@@ -56,29 +48,32 @@ monk_population = []
 whole_garden_raked = False
 impossible_to_rake_garden = False
 new_blood_executed = True
+new_blood_counter = 0
 best_try = (None, 0)
 average_fitnesses_arr = []
 all_fitnesses_arr = []
+best_monks_fitnesses = []
 
 
 num_of_generation = 0
 while not whole_garden_raked and not impossible_to_rake_garden and num_of_generation < gen_num_limit:
     num_of_generation += 1
 
-    # New blood:
-    if num_of_generation > gen_num_limit//2 and new_blood_executed:
-        print("\n ->NEW BLOOD")
-        monk_population = new_blood(monk_population, original_garden, DNA_size)
-        new_blood_executed = False
-
     # whole generation raking simulation:
     monk_population, whole_garden_raked = simulate_generation(monk_population, size_of_population, DNA_size, mutation_probability, original_garden, num_of_generation, parent_selection)
 
+    # New blood:
+    new_blood_counter += 1
+    if new_blood_counter >= 100:
+        print("\n ->NEW BLOOD")
+        monk_population = new_blood(monk_population, original_garden, DNA_size)
+        new_blood_counter = 0
 
     average_fitness = get_average_fitness(monk_population)
     average_fitnesses_arr.append(average_fitness)
     all_fitnesses_arr = append_fitnesses(all_fitnesses_arr, monk_population)
-    # curr_best_monk = get_best_monk(monk_population)
+    curr_best_monk = get_best_monk(monk_population)
+    best_monks_fitnesses.append(curr_best_monk.num_of_raked_places)
     # print("\nGeneration n.", num_of_generation, ":\n - best fitness =", curr_best_monk.num_of_raked_places, "\n - average fitness =", average_fitness)
 
     best_try = get_best_try(monk_population, num_of_generation, best_try)
@@ -125,17 +120,17 @@ plt.show()
 
 # -------------------
 
-# x = list(range(1, len(all_fitnesses_arr)+1))
-# y = all_fitnesses_arr
+# x = list(range(1, len(best_monks_fitnesses)+1))
+# y = best_monks_fitnesses
 #
 # plt.plot(x, y, color='green', linestyle='dashed', linewidth=1,
 #          marker='o', markerfacecolor='blue', markersize=5)
 #
-# plt.xlim(1, len(all_fitnesses_arr))
+# plt.xlim(1, len(best_monks_fitnesses))
 # plt.ylim(1, original_garden.num_of_sand_places)
 #
 # plt.xlabel('Monk num.')
-# plt.ylabel('Fitness')
-# plt.title('Monk fitnesses')
+# plt.ylabel('Best monk')
+# plt.title('Best fitnesses cross generations')
 #
 # plt.show()
