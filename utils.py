@@ -133,8 +133,7 @@ def crossover(DNA1, DNA2):
     # random cut-point:
     cut_point = random.randrange(1, len(DNA1[0])-1)
     child_starting_poz = ([1] + DNA1[0][1:cut_point] + DNA2[0][cut_point:])
-
-    cut_point = random.randrange(1, len(DNA2[1]) - 1)
+    # cut_point = random.randrange(1, len(DNA2[1]) - 1)
     child_turn_choices = ([1] + DNA1[1][1:cut_point] + DNA2[1][cut_point:])
 
     child_DNA.append(child_starting_poz)

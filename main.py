@@ -47,12 +47,13 @@ gen_num_limit = 200
 monk_population = []
 whole_garden_raked = False
 impossible_to_rake_garden = False
-new_blood_executed = True
+
 new_blood_counter = 0
 best_try = (None, 0)
+
 average_fitnesses_arr = []
 all_fitnesses_arr = []
-best_monks_fitnesses = []
+best_fitnesses_arr = []
 
 
 num_of_generation = 0
@@ -69,11 +70,14 @@ while not whole_garden_raked and not impossible_to_rake_garden and num_of_genera
         monk_population = new_blood(monk_population, original_garden, DNA_size)
         new_blood_counter = 0
 
-    average_fitness = get_average_fitness(monk_population)
-    average_fitnesses_arr.append(average_fitness)
-    all_fitnesses_arr = append_fitnesses(all_fitnesses_arr, monk_population)
+
     curr_best_monk = get_best_monk(monk_population)
-    best_monks_fitnesses.append(curr_best_monk.num_of_raked_places)
+    best_fitnesses_arr.append(curr_best_monk.num_of_raked_places)
+
+    average_fitnesses = get_average_fitness(monk_population)
+    average_fitnesses_arr.append(average_fitnesses)
+
+    all_fitnesses_arr = append_fitnesses(all_fitnesses_arr, monk_population)
     # print("\nGeneration n.", num_of_generation, ":\n - best fitness =", curr_best_monk.num_of_raked_places, "\n - average fitness =", average_fitness)
 
     best_try = get_best_try(monk_population, num_of_generation, best_try)
@@ -102,35 +106,19 @@ else:
 
 # Graph:
 
-x = list(range(1, num_of_generation+1))
-y = average_fitnesses_arr
+x1 = list(range(1, len(average_fitnesses_arr)+1))
+y1 = average_fitnesses_arr
+plt.plot(x1, y1, color='blue', linestyle='dashed', linewidth=1,
+         marker='o', markerfacecolor='blue', markersize=5, label="average")
 
-# plt.plot(x, y)
-plt.plot(x, y, color='green', linestyle='dashed', linewidth=1,
-         marker='o', markerfacecolor='blue', markersize=5)
-
-plt.xlim(1, gen_num_limit)
-plt.ylim(1, original_garden.num_of_sand_places)
+x2 = list(range(1, len(best_fitnesses_arr)+1))
+y2 = best_fitnesses_arr
+plt.plot(x2, y2, color='green', linestyle='dashed', linewidth=1,
+         marker='o', markerfacecolor='green', markersize=5, label="best")
 
 plt.xlabel('Generation num.')
-plt.ylabel('Average fitness')
-plt.title('Average fitnesses cross generations')
+plt.ylabel('Fitness')
+plt.title('Average / Best fitnesses cross generations')
 
+plt.legend()
 plt.show()
-
-# -------------------
-
-# x = list(range(1, len(best_monks_fitnesses)+1))
-# y = best_monks_fitnesses
-#
-# plt.plot(x, y, color='green', linestyle='dashed', linewidth=1,
-#          marker='o', markerfacecolor='blue', markersize=5)
-#
-# plt.xlim(1, len(best_monks_fitnesses))
-# plt.ylim(1, original_garden.num_of_sand_places)
-#
-# plt.xlabel('Monk num.')
-# plt.ylabel('Best monk')
-# plt.title('Best fitnesses cross generations')
-#
-# plt.show()
